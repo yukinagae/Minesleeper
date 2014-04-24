@@ -49,11 +49,9 @@ Board.prototype.flag = function(x, y) {
 };
 
 Board.prototype.get = function(x, y) {
-	if(0 <= x && x < this.maxX && 0 <= y && y < this.maxY) {
-		return this.cells[x][y];
-	} else {
-		return null;
-	}
+	if(0 <= x && x < this.maxX && 0 <= y && y < this.maxY) return this.cells[x][y];
+
+	return null;
 };
 
 Board.prototype.check_clear = function() {
@@ -94,16 +92,11 @@ function Cell(x, y, board) {
 
 Cell.prototype.show = function(){
 	switch (true) {
-		case !this.opened && this.flagged:
-			return " f ";
-		case !this.opened:
-			return " * ";
-		case this.bomb: 
-			return " b ";
-		case this.count > 0:
-			return " " + this.count + " ";
-		default:
-			return " - ";
+		case !this.opened && this.flagged: return " f ";
+		case !this.opened: 				   return " * ";
+		case this.bomb: 				   return " b ";
+		case this.count > 0:               return " " + this.count + " ";
+		default:                           return " - ";
 	}
 };
 
@@ -112,11 +105,8 @@ Cell.prototype.event = function() {
 	this.open();
 
 	switch (true) {
-		case this.bomb:
-			this.parent.game_over(); // open bomb, GAME OVER!
-			return;
-		case this.parent.check_clear(): // check if cleared
-			return;
+		case this.bomb: this.parent.game_over(); return;
+		case this.parent.check_clear(): 		 return;
 	}
 
 	this.count_around();
@@ -201,23 +191,16 @@ function main() {
 			var open_position = line.split(":");
 
 			switch (open_position.length) {
-				case 2:
-					b.open(open_position[0]-1, open_position[1]-1); break;
-				case 3:
-					b.flag(open_position[0]-1, open_position[1]-1); break;
+				case 2: 	b.open(open_position[0]-1, open_position[1]-1); break;
+				case 3: 	b.flag(open_position[0]-1, open_position[1]-1); break;
 			}
 
     		b.display();
 
     		switch (b.status) {
-    			case OK:
-    			    rl.prompt(); break;
-    			case GAME_OVER:
-    				console.log("GAME OVER!");
-    				rl.close(); break;
-    			case CLEAR:
-    				console.log("CLEAR!");
-    				rl.close(); break;
+    			case OK:        	rl.prompt(); break;
+    			case GAME_OVER: 	console.log("GAME OVER!"); rl.close(); break;
+    			case CLEAR:     	console.log("CLEAR!"); rl.close(); break;
     		}
 		}
 	}).on('close',function(){
