@@ -1,7 +1,13 @@
+/*
+constant values
+*/
 var OK = 0;
 var GAME_OVER = 1;
 var CLEAR = 2;
 
+/*
+board class
+*/
 function Board(size) {
 	this.maxX = size || 9;
 	this.maxY = size || 9;
@@ -14,12 +20,9 @@ Board.prototype.init = function() {
 
 	this.cells = new Array(this.maxX);
 
-	for (var i = 0; i < this.maxX; i++){
-		this.cells[i] = new Array(this.maxY);
-	}
-
-	for(var x = 0; x < this.maxX; x++) {
+	for (var x = 0; x < this.maxX; x++){
 		for(var y = 0; y < this.maxY; y++) {
+			this.cells[x] = this.cells[x] || new Array(this.maxY);
 			this.cells[x][y] = new Cell(x, y, this);
 		}
 	}
@@ -70,6 +73,9 @@ Board.prototype.clear = function() {
 	this.status = CLEAR;
 };
 
+/*
+cell class
+*/
 function Cell(x, y, board) {
 	this.parent = board;
 	this.x = x;
@@ -105,19 +111,18 @@ Cell.prototype.event = function() {
 
 	this.open();
 
-	if(this.bomb) { // open bomb, GAME OVER!
-		this.parent.game_over();
-		return;
-	}
-
-	if(this.parent.check_clear()) { // check if cleared
-		return;
+	switch (true) {
+		case this.bomb:
+			this.parent.game_over(); // open bomb, GAME OVER!
+			return;
+		case this.parent.check_clear(): // check if cleared
+			return;
 	}
 
 	this.count_around();
 
 	if(this.count === 0) {
-		this.around();
+		this.around(); // if around bomb coutn '0', open around.
 	} 
 };
 
@@ -130,7 +135,7 @@ Cell.prototype.open = function() {
 
 Cell.prototype.flag = function() {
 	this.flagged = !this.flagged;
-}
+};
 
 Cell.prototype.count_around = function() {
 
@@ -172,6 +177,9 @@ Cell.prototype.around = function() {
 	}
 };
 
+/*
+main function
+*/
 function main() {
 
 	var size = process.argv[2];
@@ -191,10 +199,12 @@ function main() {
 		} else {
 
 			var open_position = line.split(":");
-			if(open_position.length === 2) {
-				b.open(open_position[0]-1, open_position[1]-1);
-			} else if(open_position.length === 3) {
-				b.flag(open_position[0]-1, open_position[1]-1);
+
+			switch (open_position.length) {
+				case 2:
+					b.open(open_position[0]-1, open_position[1]-1); break;
+				case 3:
+					b.flag(open_position[0]-1, open_position[1]-1); break;
 			}
 
     		b.display();
@@ -215,4 +225,5 @@ function main() {
 	});
 };
 
+// run main function
 main();
