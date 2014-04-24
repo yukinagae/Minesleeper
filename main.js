@@ -20,7 +20,7 @@ Board.prototype.init = function() {
 
 	for(var x = 0; x < this.maxX; x++) {
 		for(var y = 0; y < this.maxY; y++) {
-			this.cells[x][y] = new Cell(x, y);
+			this.cells[x][y] = new Cell(x, y, this);
 		}
 	}
 }
@@ -48,6 +48,7 @@ Board.prototype.open = function(x, y) {
 	c.event();
 }
 
+// TODO test
 Board.prototype.openAll = function() {
 	for(var x = 0; x < this.maxX; x++) {
 		for(var y = 0; y < this.maxY; y++) {
@@ -57,9 +58,20 @@ Board.prototype.openAll = function() {
 }
 
 /*
+*/
+Board.prototype.get = function(x, y) {
+	if(0 <= x && x <= this.maxX && 0 <= y && y <= this.maxY) {
+		return this.cells[x][y];
+	} else {
+		return null;
+	}
+}
+
+/*
 Cell class
 */
-function Cell(x, y) {
+function Cell(x, y, board) {
+	this.parent = board;
 	this.x = x;
 	this.y = y;
 
@@ -108,18 +120,28 @@ Cell.prototype.event = function() {
 
 Cell.prototype.around = function() {
 	this.count += this.left_up();
-	this.count += this.up();
-	this.count += this.right_up();
-	this.count += this.left();
-	this.count += this.right();
-	this.count += this.left_down();
-	this.count += this.down();
-	this.count += this.right_down();
+	// this.count += this.up();
+	// this.count += this.right_up();
+	// this.count += this.left();
+	// this.count += this.right();
+	// this.count += this.left_down();
+	// this.count += this.down();
+	// this.count += this.right_down();
+}
+
+Cell.prototype.spread = function(x, y) {
+	var c = this.parent.get(x, y);
+	console.log(c);
+	if(c == null) {
+		return 0;
+	} else {
+		return c.bomb;
+	}
 }
 
 Cell.prototype.left_up = function() {
 	console.log("left_up!");
-	return 1;
+	return this.spread(this.x-1, this.y-1);
 }
 
 Cell.prototype.up = function() {
@@ -162,7 +184,7 @@ var b = new Board(5);
 b.init();
 
 // TODO test
-// b.openAll();
+b.openAll();
 
 b.open(1, 1);
 
