@@ -1,20 +1,21 @@
-/*
-Board class
-*/
+var OK = 0;
+var GAME_OVER = 1;
+var CLEAR = 2;
+
 function Board(size) {
 	this.maxX = size;
 	this.maxY = size;
 	this.cells;
-}
+	this.status = OK;
+	this.clear_cell_count = size * size;
+};
 
-/*
-init board
-*/
 Board.prototype.init = function() {
+	console.log(this);
 
 	this.cells = new Array(this.maxX);
 
-	for (var i = 0; i < this.cells.length; i++){
+	for (var i = 0; i < this.maxX; i++){
 		this.cells[i] = new Array(this.maxY);
 	}
 
@@ -23,181 +24,190 @@ Board.prototype.init = function() {
 			this.cells[x][y] = new Cell(x, y, this);
 		}
 	}
-}
+};
 
-/*
-display board
-*/
 Board.prototype.display = function() {
-	for(var x = 0; x < this.maxX; x++) {
+	for(var y = 0; y < this.maxY; y++) {
 		var str = "";
-		for(var y = 0; y < this.maxY; y++) {
+		for(var x = 0; x < this.maxX; x++) {
 			str = str + this.cells[x][y].show();
 		}
 		console.log(str)
 	}
 }
 
-/*
-open cell by index
-*/
 Board.prototype.open = function(x, y) {
 	var c = this.cells[x][y]
-
-	// TODO test
 	c.event();
-}
+};
 
-// TODO test
-Board.prototype.openAll = function() {
-	for(var x = 0; x < this.maxX; x++) {
-		for(var y = 0; y < this.maxY; y++) {
-			this.cells[x][y].opened = true;
-		}
-	}
-}
+Board.prototype.flag = function(x, y) {
+	var c = this.cells[x][y]
+	c.flagged = !c.flagged;
+};
 
-/*
-*/
 Board.prototype.get = function(x, y) {
-	if(0 <= x && x <= this.maxX && 0 <= y && y <= this.maxY) {
+	if(0 <= x && x < this.maxX && 0 <= y && y < this.maxY) {
 		return this.cells[x][y];
 	} else {
 		return null;
 	}
-}
+};
 
-/*
-Cell class
-*/
+Board.prototype.game_over = function() {
+	this.status = GAME_OVER;
+};
+
+Board.prototype.clear = function() {
+	this.status = CLEAR;
+};
+
 function Cell(x, y, board) {
 	this.parent = board;
 	this.x = x;
 	this.y = y;
-
+	this.positions = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+	this.flagged = false;
 	this.opened = false;
 	this.count = 0;
 
-	// var rand = Math.floor(Math.random() * 4);
-	// this.bomb = rand == 0;
-	// TODO test
-	if((x == 2 && y == 2) || (x == 0 && y == 0) || (x == 0 && y == 3)) {
+	var rand = Math.floor(Math.random() * this.parent.maxX);
+	if(rand === 0) {
 		this.bomb = true;
+		this.parent.clear_cell_count--;
+	}
+};
+
+Cell.prototype.show = function(){
+	switch (true) {
+		case !this.opened && this.flagged:
+			return " f ";
+		case !this.opened:
+			return " * ";
+		case this.bomb: 
+			return " b ";
+		case this.count > 0:
+			return " " + this.count + " ";
+		default:
+			return " - ";
+	}
+};
+
+Cell.prototype.event = function() {
+
+	this.open();
+
+	if(this.bomb) {
+		this.parent.game_over();
+		return;
+	}
+
+	if(this.parent.clear_cell_count === 0) {
+		this.parent.clear();
+		return;
+	}
+
+	this.count_around();
+
+	if(this.count === 0) {
+		this.around();
+	} 
+};
+
+Cell.prototype.open = function() {
+	if(!this.opened) {
+		this.opened = true;
+		this.parent.clear_cell_count--;
+	}
+};
+
+Cell.prototype.flag = function() {
+	if(this.flagged) {
+		this.flagged = false;
+		this.parent.clear_cell_count++;
 	} else {
-		this.bomb = false;
+		this.flagged = true;
+		this.parent.clear_cell_count--;
 	}
 }
 
-/*
-show cell
-*/
-Cell.prototype.show = function(){
-	if(!this.opened) {
-		return "*";
-	} else {
-		if(this.bomb) {
-			return "b";
-		} else {
-			if(this.count > 0) {
-				return this.count;
-			} else {
-				return "-";
-			}
+Cell.prototype.count_around = function() {
+
+	var sum = 0;
+	for(var i = 0; i < this.positions.length; i++) {
+		
+		var c = this.parent.get(this.x + this.positions[i][0], this.y + this.positions[i][1]);
+		if(c == null) {
+			continue;
+		} else if(c.bomb){
+			sum++;
 		}
 	}
-}
-
-/*
-trigger
-*/
-Cell.prototype.event = function() {
-	// open
-	this.opened = true;
-
-	// around
-	this.around();
-}
+	this.count = sum;
+};
 
 Cell.prototype.around = function() {
-	this.count += this.left_up();
-	// this.count += this.up();
-	// this.count += this.right_up();
-	// this.count += this.left();
-	// this.count += this.right();
-	// this.count += this.left_down();
-	// this.count += this.down();
-	// this.count += this.right_down();
-}
 
-Cell.prototype.spread = function(x, y) {
-	var c = this.parent.get(x, y);
-	console.log(c);
-	if(c == null) {
-		return 0;
-	} else {
-		return c.bomb;
+	var sum = 0;
+	for(var i = 0; i < this.positions.length; i++) {
+
+		var c = this.parent.get(this.x + this.positions[i][0], this.y + this.positions[i][1]);
+		if(c == null || c.opened) {
+			continue; // go next if outside of board or already opened
+		} else {
+			c.count_around(); // count around bombs
+
+			if(c.count === 0) {
+				c.open();
+				c.around(); // recursively check around
+			} else {
+				c.open();
+			}	
+		}
 	}
-}
+};
 
-Cell.prototype.left_up = function() {
-	console.log("left_up!");
-	return this.spread(this.x-1, this.y-1);
-}
+function main() {
 
-Cell.prototype.up = function() {
-	console.log("up!");
-	return 1;
-}
+	var size = process.argv[2];
+	var b = new Board(size);
+	b.init();
+	b.display();
 
-Cell.prototype.right_up = function() {
-	console.log("right_up!");
-	return 1;
-}
+	var readline = require('readline');
+	var rl = readline.createInterface(process.stdin, process.stdout);
 
-Cell.prototype.left = function() {
-	console.log("left!");
-	return 1;
-}
+	rl.setPrompt('mine> ');
+	rl.prompt();
+	rl.on('line', function(line) {
 
-Cell.prototype.right = function() {
-	console.log("right!");
-	return 1;
-}
+    	if (line === "exit" || line === "q" || line === "quit") { 
+			rl.close();
+		} else {
 
-Cell.prototype.left_down = function() {
-	console.log("left_down!");
-	return 1;
-}
+			var open_position = line.split(":");
+			if(open_position.length === 2) {
+				b.open(open_position[0]-1, open_position[1]-1);
+			} else if(open_position.length === 3) {
+				b.flag(open_position[0]-1, open_position[1]-1);
+			}
 
-Cell.prototype.down = function() {
-	console.log("down!");
-	return 1;
-}
+    		b.display();
 
-Cell.prototype.right_down = function() {
-	console.log("right_down!");
-	return 1;
-}
+    		switch (b.status) {
+    			case OK:
+    			    rl.prompt(); break;
+    			case GAME_OVER:
+    				console.log("GAME OVER!");
+    				rl.close(); break;
+    			case CLEAR:
+    				console.log("CLEAR!");
+    				rl.close(); break;
+    		}
+		}
+	}).on('close',function(){
+    	process.exit(0);
+	});
+};
 
-var b = new Board(5);
-
-b.init();
-
-// TODO test
-b.openAll();
-
-b.open(1, 1);
-
-b.display();
-
-// var readline = require('readline');
-// var rl = readline.createInterface(process.stdin, process.stdout);
-// rl.setPrompt('guess> ');
-// rl.prompt();
-// rl.on('line', function(line) {
-//     if (line === "exit" || line === "q" || line === "quit") rl.close();
-//     b.display();
-//     rl.prompt();
-// }).on('close',function(){
-//     process.exit(0);
-// });
+main();
