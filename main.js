@@ -3,15 +3,14 @@ var GAME_OVER = 1;
 var CLEAR = 2;
 
 function Board(size) {
-	this.maxX = size;
-	this.maxY = size;
+	this.maxX = size || 9;
+	this.maxY = size || 9;
 	this.cells;
 	this.status = OK;
-	this.clear_cell_count = size * size;
+	this.clear_cell_count = this.maxX * this.maxY;
 };
 
 Board.prototype.init = function() {
-	console.log(this);
 
 	this.cells = new Array(this.maxX);
 
@@ -34,7 +33,7 @@ Board.prototype.display = function() {
 		}
 		console.log(str)
 	}
-}
+};
 
 Board.prototype.open = function(x, y) {
 	var c = this.cells[x][y]
@@ -51,6 +50,15 @@ Board.prototype.get = function(x, y) {
 		return this.cells[x][y];
 	} else {
 		return null;
+	}
+};
+
+Board.prototype.check_clear = function() {
+	if(this.clear_cell_count === 0) {
+		this.clear();
+		return true;
+	} else {
+		return false;
 	}
 };
 
@@ -97,13 +105,12 @@ Cell.prototype.event = function() {
 
 	this.open();
 
-	if(this.bomb) {
+	if(this.bomb) { // open bomb, GAME OVER!
 		this.parent.game_over();
 		return;
 	}
 
-	if(this.parent.clear_cell_count === 0) {
-		this.parent.clear();
+	if(this.parent.check_clear()) { // check if cleared
 		return;
 	}
 
@@ -122,13 +129,7 @@ Cell.prototype.open = function() {
 };
 
 Cell.prototype.flag = function() {
-	if(this.flagged) {
-		this.flagged = false;
-		this.parent.clear_cell_count++;
-	} else {
-		this.flagged = true;
-		this.parent.clear_cell_count--;
-	}
+	this.flagged = !this.flagged;
 }
 
 Cell.prototype.count_around = function() {
@@ -162,6 +163,10 @@ Cell.prototype.around = function() {
 				c.around(); // recursively check around
 			} else {
 				c.open();
+				
+				if(c.parent.check_clear()) { // check if cleared
+					break;
+				}
 			}	
 		}
 	}
