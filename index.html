@@ -1,0 +1,76 @@
+<body>
+<div id="mine"></div>
+<h1 id="status"></h1>
+</body>
+
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+<script type="text/javascript">
+module = {}; // override module reference, otherwise it causes error because of not using node.js
+</script>
+
+<script src="mine_sleeper.js" charset="utf-8"></script>
+
+<script type="text/javascript">
+
+var add_style = function(cell){
+						switch (true) {
+							case !cell.opened && cell.flagged: return "F";
+							case !cell.opened: 				   return "*";
+							case cell.bomb: 				   return "B!";
+							case cell.count > 0:               return cell.count;
+							default:                           return "-";
+						}
+				}
+
+var b = new Board(5);
+b.init();
+
+var refresh = function() {
+
+d3.selectAll("tr").remove();
+
+var mine = d3.select("#mine")
+					 .append("table")
+    				 .style("border-collapse", "collapse")
+    				 .style("border", "1px black solid");
+
+var cells = mine.selectAll("tr")
+	.data(b.cells)
+	.enter()
+	.append("tr")
+    .selectAll("td")
+    .data(function(d){return d;});
+
+cells.enter().append("td")
+				 .attr("width", 15)
+				 .attr("height", 15)
+        		 .style("background-color", "steelblue")
+        		 .style("opacity", function(d){
+        		 	if(d.opened) {
+        		 		return 1;
+        		 	} else {
+        		 		return 0.5;
+        		 	}
+        		 })
+				 .style("border", "1px black solid")
+    			 .style("padding", "10px")
+    			 .on("mouseover", function(){d3.select(this).style("background-color", "yellow")}) 
+    			 .on("mouseout", function(){d3.select(this).style("background-color", "steelblue")})
+    			 .on("contextmenu", function(d){b.flag(d.x, d.y); refresh();})
+    			 .on("click", function(d){b.open(d.x, d.y); refresh();})
+    			 .text(function(d){
+						return add_style(d);
+    			 })
+    			 .style("font-size", "12px");
+
+    switch(b.status) {
+    	case OK: return;
+    	case GAME_OVER: d3.select("#status").text("GAME OVER!"); return;
+    	case CLEAR: d3.select("#status").text("CLEAR!"); return;
+    }
+}
+
+refresh();
+
+</script>
