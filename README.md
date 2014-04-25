@@ -14,7 +14,7 @@ Quick Start
 node main.js
 </pre>
 
-start the game.
+now start the game.
 
 <pre>
  *  *  *  *  *  *  *  *  *
@@ -33,6 +33,7 @@ Options
 --------
 
 * set board size
+
 <pre>
 node main.js [board size (default is 9)]
 </pre>
@@ -41,6 +42,7 @@ Commands
 --------
 
 * open cell
+
 <pre>
 mine> [x]:[y]
 </pre>
@@ -71,7 +73,7 @@ example:
  *  *  *  *  *  *  *  *  *
  *  *  *  *  *  *  *  *  *
  *  *  *  *  *  *  *  *  *
-mine> [2]:[3]
+mine> 2:3
  *  *  *  *  *  *  *  *  *
  *  *  *  *  *  *  *  *  *
  *  <span style="color:red">1</span>  *  *  *  *  *  *  *
@@ -85,6 +87,7 @@ mine>
 </pre>
 
 * check flag (just add extra semicolon end of the command)
+
 <pre>
 mine> [x]:[y]:
 </pre>
@@ -100,7 +103,7 @@ example:
  -  -  -  1  *  1  -  -  -
  -  -  1  2  *  2  1  1  -
  -  -  1  *  *  *  *  1  -
-mine> [3]:[2]:
+mine> 3:2:
  -  1  *  *  *  *  *  1  -
  -  1  <span style="color:red">f</span>  2  1  1  *  1  -
  -  1  1  1  -  1  1  1  -
@@ -114,4 +117,5 @@ mine>
 </pre>
 
 * quit game
+
 <pre>mine> quit</pre>
