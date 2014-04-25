@@ -19,10 +19,9 @@ function Board(size) {
 Board.prototype.init = function() {
 
 	this.cells = new Array(this.maxX);
-
 	for (var x = 0; x < this.maxX; x++){
+		this.cells[x] = new Array(this.maxY);
 		for(var y = 0; y < this.maxY; y++) {
-			this.cells[x] = this.cells[x] || new Array(this.maxY);
 			this.cells[x][y] = new Cell(x, y, this);
 		}
 	}
