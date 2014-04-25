@@ -23,7 +23,8 @@ var add_style = function(cell){
 						}
 				}
 
-var b = new Board(5);
+// TODO read user input for setting board size
+var b = new Board();
 b.init();
 
 var refresh = function() {
@@ -64,6 +65,7 @@ cells.enter().append("td")
     			 })
     			 .style("font-size", "12px");
 
+// TODO add restart button 
     switch(b.status) {
     	case OK: return;
     	case GAME_OVER: d3.select("#status").text("GAME OVER!"); return;
