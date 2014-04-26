@@ -38,13 +38,17 @@ Board.prototype.display = function() {
 };
 
 Board.prototype.open = function(x, y) {
-	var c = this.cells[x][y]
-	c.event();
+	var c = this.get(x, y);
+	if(c != null) {
+		c.event();
+	}
 };
 
 Board.prototype.flag = function(x, y) {
-	var c = this.cells[x][y]
-	c.flagged = !c.flagged;
+	var c = this.get(x, y);
+	if(c != null) {
+		c.flag();
+	}
 };
 
 Board.prototype.get = function(x, y) {
