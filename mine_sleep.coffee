@@ -83,7 +83,6 @@ class Cell
 				sum++
 		@count = sum
 	around: ->
-		sum = 0
 		for i in [0..@positions.length-1]
 			c = @parent.get(@x + @positions[i][0], @y + @positions[i][1])
 			if c?.opened
