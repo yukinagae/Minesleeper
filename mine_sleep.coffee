@@ -53,49 +53,43 @@ class Cell
 			@parent.clear_cell_count--
 	show: -> 
 		switch
-			when !@opened && @flagged then " f "
-			when !@opened then " * "
+			when (not @opened) && @flagged then " f "
+			when not @opened then " * "
 			when @bomb then " b "
 			when @count > 0 then " #{@count} "
 			else " - "
 	event: -> 
 		this.open()
-		if @bomb
-			@parent.game_over()
-			return
-		if @parent.check_clear()
-			return
+		if @bomb then return @parent.game_over()
+		if @parent.check_clear() then return
 		this.count_around()
-		if @count is 0
-			this.around()
+		if @count is 0 then this.go_around()
 	open: -> 
-		if !@opened
+		if not @opened
 			@opened = true
 			@parent.clear_cell_count--
-	flag: -> @flagged = !@flagged
+	flag: -> @flagged = not @flagged
 	count_around: ->
 		sum = 0
 		for i in [0..@positions.length-1]
 			c = @parent.get(@x + @positions[i][0], @y + @positions[i][1])
 			if c is undefined
 				continue
-			else if c?.bomb
+			if c?.bomb
 				sum++
 		@count = sum
-	around: ->
+	go_around: ->
 		for i in [0..@positions.length-1]
 			c = @parent.get(@x + @positions[i][0], @y + @positions[i][1])
 			if c?.opened
 				continue
 			else
+				c?.open()
 				c?.count_around()
 				if c?.count is 0
-					c.open()
-					c.around()
-				else
-					c?.open()
-					if c?.parent.check_clear()
-						break
+					c.go_around() # recursively go around
+				if c?.parent.check_clear()
+					break
 
 # export objects as module
 module.exports =
